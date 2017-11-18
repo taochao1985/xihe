@@ -31,11 +31,16 @@ class Fileupload extends CI_Controller {
         $filename = date("Ymd", time()).$random.'.'.$ext; 
         return $filename;
     } 
-	   
+       
     function index(){    
         $new_name                = $this->rename_file($_FILES['userfile']['name']);
         $file_type               = isset($_POST['file_type'])?trim($_POST['file_type']):'images';
-        $config_path             = './uploads/'.$file_type;
+        $sub_folder = date('Y-m-d');
+        if (!file_exists('./uploads/'.$file_type.'/'.$sub_folder)){
+            mkdir ('./uploads/'.$file_type.'/'.$sub_folder,0777,true);
+        }
+        $target_folder           = '/uploads/'.$file_type.'/'.$sub_folder.'/';
+        $config_path             = '.'.$target_folder;
         $config['upload_path']   = $config_path;
         $config['file_name']     = $new_name;
         $config['allowed_types'] = 'mp3|mov|jpg|jpeg|png|mp4';  
@@ -48,8 +53,8 @@ class Fileupload extends CI_Controller {
             echo json_encode(array('errno'=>10001,'msg'=>$error));exit;
         }else{
             $data = $this->upload->data();
-            $data['final_path'] = '/uploads/'.$file_type.'/'; 
+            $data['final_path'] = $target_folder; 
             echo json_encode(array('errno'=>0,'msg'=>'success','data'=>$data));exit;
         }
     }
-}	
+}   
