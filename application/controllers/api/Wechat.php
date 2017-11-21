@@ -11,7 +11,6 @@ class Wechat extends CI_Controller{
 *   get wechat user's openid according 
 *   to wechat js_code
 */
-
     function get_openid_sessionkey(){
         $appid       = trim($_GET['appid']);
         $secret      = trim($_GET['secret']);
@@ -20,7 +19,7 @@ class Wechat extends CI_Controller{
         $request_url = "https://api.weixin.qq.com/sns/jscode2session?appid=".$appid."&secret=".$secret."&js_code=".$js_code."&grant_type=".$grant_type;
 
         $result = $this->_get_request($request_url);
-        echo "<pre>";print_r($result);exit;
+        echo json_encode($result);exit;
     }
 
 
