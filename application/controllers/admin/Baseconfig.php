@@ -6,6 +6,13 @@ class Baseconfig extends CI_Controller{
         parent::__construct(); 
     }
 	
+    function update_slider_images_cache(){
+        $this->cache->memcached->delete('slider_images'); 
+        $images = $this->photo->select('slider_images');
+        $result = $this->cache->memcached->save('slider_images',$images, 60*60*24*29);
+        return $result?true:false;
+    }
+
     function slider_images(){
         $data['images'] = $this->photo->select('slider_images');
         $this->load->view('admin/baseconfig/slider_images', $data);
@@ -26,6 +33,7 @@ class Baseconfig extends CI_Controller{
         }
 
         if( $result ){
+            $result = $this->update_slider_images_cache();
             echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit;
         }else{
             echo json_encode(array('code'=>10001, 'msg'=>'操作失败'));exit;
@@ -103,27 +111,4 @@ class Baseconfig extends CI_Controller{
         echo json_encode(array('code'=>0, 'count'=>'操作成功', 'count'=>$lessions_count));exit;
     }
 
-/*
-*   loading lession create page
-*/
-    function create(){
-        $data['class'] = array();
-    	$this->load->view('admin/lessions/create', $data);
-    }
-
-    function edit($id){
-
-    }
-
-    function show($id){
-
-    }
-    
-    function store(){
-
-    }
-
-    function destory(){
-
-    }
 }	

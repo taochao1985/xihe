@@ -7,11 +7,10 @@ class Main extends CI_Controller{
     }
 	
     function index(){
-        $this->load->driver('cache');
-        $result = $this->cache->memcached->save('foo', 'bar', 10); 
-
-        $cached = $this->cache->memcached->get('foo');
-
-        echo '<pre>';print_r($cached);
+        $slider_images = $this->cache->memcached->get('slider_images');
+        echo json_encode(array(
+            'slider_images' => $slider_images
+        ));
+        exit;
     }
 }	

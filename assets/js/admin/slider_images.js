@@ -15,12 +15,6 @@
     photo._btn_click = function(){
         var id   = photo._int(dom.id.val());
         var relate_url = photo._trim(dom.relate_url.val());
-
-        if ( relate_url == ""){
-            dom.relate_url.parents(".form-group").addClass('has-error');
-            return false;
-        }
-
         var image_path = photo._trim(dom.image_path.val());
 
         if ( image_path == ""){
@@ -58,7 +52,7 @@
     };
 
     photo._file_uploaded = function(data, target, file_type, item_input){
-        if( data.code == 0 ){
+        if( data.errno == 0 ){
             var data      = data.data;
             var file_path = data.final_path+data.file_name;
             target.css('margin-top','0').html("<img src='"+file_path+"' class='venobox' href='"+file_path+"' />"); 
