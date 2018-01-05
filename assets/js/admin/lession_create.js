@@ -9,19 +9,25 @@
         video_input : $(".hidden_video_input"),
         audio_input : $(".hidden_audio_input"),
         image_input : $(".hidden_image_input"),
+        start_time  : $(".start_time"),
         id          : $(".lession_id"),
         lt_id       : $(".lt_id"),
-        title       : $(".title")
+        title       : $(".title"),
+        current_time: $(".current_time")
     };
 
     photo._init_editor = function(){
-        var E = window.wangEditor
+        var E = window.wangEditor;
         dom.editor = new E('#description');
-        dom.editor.customConfig.uploadImgServer = '/admin/fileupload';
-        dom.editor.customConfig.uploadFileName = 'userfile';
+        dom.editor.customConfig.uploadImgServer = '/admin/fileupload/mluti_upload';
+        dom.editor.customConfig.uploadFileName = 'userfile[]';
+        dom.editor.customConfig.uploadImgMaxLength = 50;
         dom.editor.customConfig.uploadImgHooks = {
             customInsert: function (insertImg, result, editor) { 
-                insertImg(result.data.final_path+result.data.file_name); 
+                var result = result.data;
+                for(var i = 0 ; i < result.final_data.length; i++){
+                    insertImg(photo.base_url+result.final_path+result.final_data[i].file_name); 
+                }
             }
         };
         dom.editor.create()
@@ -70,8 +76,11 @@
     photo._get_form_data = function(){
         var id         = photo._int(dom.id.val());
         var video_path = photo._trim(dom.video_input.val());
+        var video_name = photo._trim(dom.video_input.parents('.upload_item').find('.name_area').html());
         var audio_path = photo._trim(dom.audio_input.val());
+        var audio_name = photo._trim(dom.audio_input.parents('.upload_item').find('.name_area').html());
         var image_path = photo._trim(dom.image_input.val());
+        var start_time = dom.start_time.val();
         var description = dom.editor.txt.html();
         var title      = photo._trim(dom.title.val());
         var lt_id      = photo._int(dom.lt_id.val());
@@ -82,12 +91,22 @@
         }else{
             dom.title.parents(".item").removeClass('has-error');
         }
+
+        if( image_path == ""){
+            photo.error_modal({
+                    msg  : "请上传封面图片"
+                }); 
+            return false;       
+        }
         var form_data = {
             id          : id,
             video_path  : video_path,
             audio_path  : audio_path,
             image_path  : image_path,
+            video_name  : video_name,
+            audio_name  : audio_name,
             description : description,
+            start_time  : start_time,
             lt_id       : lt_id,
             title       : title
         }; 
@@ -98,6 +117,18 @@
         }
         photo._save_form_data(form_data, request_url);
     };
+
+    dom.start_time.datetimepicker({
+        weekStart: 1,
+        todayBtn: 1,
+        autoclose: 1,
+        todayHighlight: 1,
+        startView: 1,
+        minView: 4,
+        forceParse: 0,
+        startDate:dom.current_time.val(),
+        format: 'yyyy-mm-dd hh:ii:ss'
+    });
 
     photo._init_editor();
 

@@ -76,7 +76,7 @@
         var item = $(this).parents('tr');
         var id   = photo._int(item.children('td:eq(0)').html()); 
         photo.error_modal({
-            onok : function(){ photo._exec_delete('/admin/baseconfig/slider_images_delete', id);},
+            onok : function(){ photo._exec_delete('/admin/baseconfig/slider_images_delete', { id : id });},
             id   : id,
             msg  : "您确认要删除吗？"
         });

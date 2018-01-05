@@ -1,6 +1,7 @@
 <?php $this->load->view('admin/common_header');?>
 <link href="/node_modules/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet"  type="text/css" href="/node_modules/blueimp-file-upload/css/jquery.fileupload.css" />
+<link rel="stylesheet"  type="text/css" href="/node_modules/bootstrap-datetime-picker/css/bootstrap-datetimepicker.min.css" />
 <link href="/node_modules/venobox/venobox/venobox.css" rel="stylesheet" type="text/css" />
 <link href="/node_modules/wangeditor/release/wangEditor.min.css" rel="stylesheet" type="text/css" />
 
@@ -36,6 +37,14 @@
                 </div>
 
                 <div class="item form-group">
+                  <label class="control-label col-md-2 col-sm-2 col-xs-12" for="field_one">开始时间
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <input type="text" name="start_time" value="<?php if($lession){echo date('Y-m-d H:i:s', $lession->start_time);}?>" class="form-control col-md-7 col-xs-12 start_time">
+                  </div>
+                </div>
+
+                <div class="item form-group">
                   <label class="control-label col-md-2 col-sm-2 col-xs-12" for="field_one">视频
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12 upload_item" style="margin-top:8px;">
@@ -44,12 +53,14 @@
                         <span>选择视频</span>
                         <!-- The file input field used as target for the file upload widget -->
                         <input class="fileupload" type="file" name="userfile" multiple="" file_type="videos">
-                        <input type="hidden" class="hidden_video_input" >
+                        <input type="hidden" class="hidden_video_input" value="<?php if($lession){echo $lession->video_path;}?>">
                     </div> 
                     <div class="progress upload-process pull-left hidden">
                         <div class="progress-bar progress-bar-success"></div>
                     </div>
-                    <div class="name_area upload-process name-area pull-left"></div>
+                    <div class="name_area upload-process name-area pull-left">
+                        <?php if($lession){echo $lession->video_name;}?>
+                    </div>
                     <span class="clearfix"></span>
                   </div>
                 </div>
@@ -63,12 +74,14 @@
                         <span>选择音频</span>
                         <!-- The file input field used as target for the file upload widget -->
                         <input class="fileupload" type="file" name="userfile" multiple="" file_type="audios">
-                        <input type="hidden" class="hidden_audio_input" >
+                        <input type="hidden" class="hidden_audio_input" value="<?php if($lession){echo $lession->audio_path;}?>" >
                     </div> 
                     <div class="progress upload-process pull-left hidden">
                         <div class="progress-bar progress-bar-success"></div>
                     </div>
-                    <div class="name_area upload-process name-area pull-left"></div>
+                    <div class="name_area upload-process name-area pull-left">
+                        <?php if($lession){echo $lession->audio_name;}?>
+                    </div>
                     <span class="clearfix"></span>
                   </div>
                 </div>
@@ -82,12 +95,16 @@
                         <span>选择图片</span>
                         <!-- The file input field used as target for the file upload widget -->
                         <input class="fileupload" type="file" name="userfile" multiple="" file_type="images">
-                        <input type="hidden" class="hidden_image_input" >
+                        <input type="hidden" class="hidden_image_input" value="<?php if($lession){echo $lession->image_path;}?>">
                     </div> 
                     <div class="progress upload-process pull-left hidden">
                         <div class="progress-bar progress-bar-success"></div>
                     </div>
-                    <div class="name_area upload-process name-area pull-left"></div>
+                    <div class="name_area upload-process name-area pull-left" <?php if($lession){ ?> style="margin-top:0" <?php }?>>
+                        <?php if($lession){ ?>
+                            <img src="<?php echo $lession->image_path;?>"  class='venobox' href="<?php echo $lession->image_path;?>">
+                        <?php }?>    
+                    </div>
                     <span class="clearfix"></span>
                   </div>
                 </div>
@@ -104,23 +121,22 @@
                 <div class="form-group">
                   <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
                     <button class="btn btn-success save_btn" type="button">保存</button>
-                    <button class="btn btn-primary form_go_back" type="button">返回</button>
+                    <button class="btn btn-primary" type="button" onclick="history.go(-1)">返回</button>
                   </div>
                 </div>
-
           </form>
         </div>
       </div>
     </div>
   </div>
+<input type="hidden" class="current_time" value="<?php echo $current_time;?>" >  
 <script type="text/javascript" src="/node_modules/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+<script type="text/javascript" src="/node_modules/bootstrap-datetime-picker/js/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/vendor/jquery.ui.widget.js"></script>
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.iframe-transport.js"></script>
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/cors/jquery.xdr-transport.js"></script>
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload.js"></script>
-<script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-process.js"></script>
-<script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-video.js"></script>
-<script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-audio.js"></script>
+<script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-process.js"></script> 
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-validate.js"></script>
 <script type="text/javascript" src="/node_modules/wangeditor/release/wangEditor.min.js"></script>
 <script type="text/javascript" src="/node_modules/venobox/venobox/venobox.min.js"></script>

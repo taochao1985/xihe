@@ -72,9 +72,9 @@
         </div>
       </div>
     </div>
-
+  <input type="hidden" value="<?php echo base_url();?>" class="hidden_base_url">
   <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>  
   <script src="/assets/js/custom.js"></script>
   <script src="/assets/js/admin/common.js"></script>
       <!-- page content -->
-    <div class="right_col" role="main" id="music_target" style="min-height:1000px;">
+  <div class="right_col" role="main" id="music_target" style="min-height:1000px;">

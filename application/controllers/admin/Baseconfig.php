@@ -45,6 +45,7 @@ class Baseconfig extends CI_Controller{
          
         $result = $this->photo->delete('slider_images', array('id' => $id));
         if( $result ){
+            $this->update_slider_images_cache();
             echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit;
         }else{
             echo json_encode(array('code'=>10001, 'msg'=>'操作失败'));exit;
@@ -56,7 +57,7 @@ class Baseconfig extends CI_Controller{
 */
     function lession_type(){
         
-        $data['types'] = $this->photo->select('lession_type');
+        $data['types'] = $this->photo->select('lession_type', '', '', '', '', array('sort' => 'desc'));
         $this->load->view('admin/baseconfig/lession_type', $data);
     }
 
@@ -67,10 +68,11 @@ class Baseconfig extends CI_Controller{
     function lession_type_store(){
         $id   = trim($_POST['id']);
         $name = trim($_POST['name']);
+        $sort = $_POST['sort'];
         if( $id != 0 ){
-            $result = $this->photo->update('lession_type', array('name'=>$name), array('id'=>$id));
+            $result = $this->photo->update('lession_type', array('name'=>$name, 'sort' => $sort ), array('id'=>$id));
         }else{
-            $result = $this->photo->insert('lession_type',array('name'=>$name));
+            $result = $this->photo->insert('lession_type', array('name'=>$name, 'sort' => $sort ));
         }
 
         if( $result ){
@@ -106,7 +108,7 @@ class Baseconfig extends CI_Controller{
 *   before delete lession type
 */
     function check_lessions(){
-        $id = trim($_POST['id']);
+        $id = trim($_GET['id']);
         $lessions_count = $this->photo->select_count_where('lessions',array('lt_id'=>$id));
         echo json_encode(array('code'=>0, 'count'=>'操作成功', 'count'=>$lessions_count));exit;
     }

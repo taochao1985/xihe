@@ -83,3 +83,9 @@ defined('EXIT_USER_INPUT')     OR define('EXIT_USER_INPUT', 7); // invalid user 
 defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+
+// defined('MINIPROGRAM_APPID')   OR define('MINIPROGRAM_APPID', 'wx03c4a7af3ca67e');
+// defined('MINIPROGRAM_SECRET')  OR define('MINIPROGRAM_SECRET', 'ffecf38525a085f5bc5359818e6b2487');
+
+defined('MINIPROGRAM_APPID')   OR define('MINIPROGRAM_APPID', 'wx798a94ca49cd4396');
+defined('MINIPROGRAM_SECRET')  OR define('MINIPROGRAM_SECRET', 'e3e147c2c0d0eec5566734f9639c1e4b');

@@ -8,8 +8,7 @@ class Fileupload extends CI_Controller {
 
     function generate_code($len = 10){
         $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for ($i = 0, $count = strlen($chars); $i < $count; $i++)
-        {
+        for ($i = 0, $count = strlen($chars); $i < $count; $i++){
             $arr[$i] = $chars[$i];
         }
 
@@ -34,12 +33,8 @@ class Fileupload extends CI_Controller {
        
     function index(){    
         $new_name                = $this->rename_file($_FILES['userfile']['name']);
-        $file_type               = isset($_POST['file_type'])?trim($_POST['file_type']):'images';
-        $sub_folder = date('Y-m-d');
-        if (!file_exists('./uploads/'.$file_type.'/'.$sub_folder)){
-            mkdir ('./uploads/'.$file_type.'/'.$sub_folder,0777,true);
-        }
-        $target_folder           = '/uploads/'.$file_type.'/'.$sub_folder.'/';
+        $file_type               = isset($_POST['file_type'])?trim($_POST['file_type']):'images'; 
+        $target_folder           = '/uploads/'.$file_type.'/';
         $config_path             = '.'.$target_folder;
         $config['upload_path']   = $config_path;
         $config['file_name']     = $new_name;
@@ -48,7 +43,7 @@ class Fileupload extends CI_Controller {
         $config['max_height']    = '';
 
         $this->load->library('upload', $config);  
-        if ( ! $this->upload->do_upload('userfile')){
+        if ( !$this->upload->do_upload('userfile')){
             $error = $this->upload->display_errors();
             echo json_encode(array('errno'=>10001,'msg'=>$error));exit;
         }else{

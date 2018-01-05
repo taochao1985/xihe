@@ -1,114 +1,6 @@
 <?php
 class Photo extends CI_Model {
 
-    function _generate_code($len = 20){ 
-        $chars = '0123456789';
-
-        for ($i = 0, $count = strlen($chars); $i < $count; $i++){
-        	$arr[$i] = $chars[$i];
-        }
-
-    	mt_srand((double) microtime() * 1000000);
-    	shuffle($arr);
-    	$code = substr(implode('', $arr),0 , $len);
-        return $code;
-    }
-
-    function get_ip(){
-        return $_SERVER["REMOTE_ADDR"];
-    }
-
-    function _send_sms($mobile,$content){
-        require_once APPPATH.'libraries/sms/ChuanglanSmsApi.php';
-        $clapi  = new ChuanglanSmsApi();
-        $result = $clapi->sendSMS($mobile,$content,'true');
-        $result = $clapi->execResult($result);
-        if(!$result[0]){
-            return "发送失败";
-        }else{
-
-            if($result[1]==0){
-                    return 'success';
-            }else{
-                return "发送失败{$result[1]}";
-            }
-        }
-    }
-
-     function _generate_num($table,$label){
-        $result = $this->music->select($table,'numbe','',0,1,array('id'=>'desc'));
-        if($result){
-            $num = $result[0]->numbe;
-        }else{
-            return $label.'000001';
-        }
-
-        $l = strlen(intval(ltrim($num,$label)));
-        $next_num = intval(ltrim($num,$label));
-        $j = $label;
-
-        for($i = 0; $i< 6-$l; $i++){
-            $j.='0';
-        }
-
-        $next_num++;
-        $t = strlen($next_num);
-        $tt = substr($next_num, $t-1, $t);
-        if($tt == 4){
-            $next_num++;
-        }
-        return $j.$next_num;
-    }
-
-
-    function check_user($cond){
-        $temp_user = $this->jifen->select('users','*',$cond);
-        if(!$temp_user){
-            echo json_encode(array('success'=>'no','msg'=>'用户不存在，请确认'));exit;
-        }else{
-            return $temp_user[0];
-        }
-  }
-
-  function add_score($user,$socre,$type){
-      if($type == 'add_score'){
-          $final_score = $user->score+$socre;
-      }else if($type == 'minus_score'){
-          $final_score = $user->score-$socre;
-          if($final_score < 0){
-             echo json_encode(array('success'=>'no','msg'=>'积分不能小于0'));exit;
-          }
-      }
-      $result = $this->jifen->update('users',array('score'=>$final_score),array('id'=>$user->id));
-      if($result){
-        return true;
-      }else{
-         echo json_encode(array('success'=>'no','msg'=>'操作失败'));exit;
-      }
-  }
-
-    function generate_cart_no(){
-        return $this->_generate_code(12);
-    }
-
-    function xml_to_array($xml){
-        $reg = "/<(\w+)[^>]*>([\\x00-\\xFF]*)<\\/\\1>/";
-        if(preg_match_all($reg, $xml, $matches)){
-            $count = count($matches[0]);
-            for($i = 0; $i < $count; $i++){
-                $subxml= $matches[2][$i];
-                $key = $matches[1][$i];
-                if(preg_match( $reg, $subxml )){
-                    $arr[$key] = xml_to_array( $subxml );
-                }else{
-                    $arr[$key] = $subxml;
-                }
-            }
-        }
-        return $arr;
-    }
-
-
     function select_count_where($table,$cond='',$like='',$or_like=''){
         if ($cond){
            $this->db->where($cond);
@@ -185,6 +77,92 @@ class Photo extends CI_Model {
         return $result;
     }
 
+    function select_collections(){
+        $this->db->select('count(*) as count ,image_collects.image_id,attachments.image_path, publishes.uid');
+        $this->db->from('image_collects');
+        $this->db->join('attachments', 'attachments.id = image_collects.image_id ', 'left');
+        $this->db->join('publishes', 'publishes.id = attachments.item_id', 'left');
+        $this->db->group_by('image_collects.image_id');
+        $this->db->order_by('count','desc');
+       // $this->db->limit(4,0);
+        $query = $this->db->get();
+        $result = $query->result(); 
+        return $result;
+    }
+
+    function select_follows(){
+        $this->db->select('count(*) as count ,users.avatarurl,user_follows.target_uid');
+        $this->db->from('user_follows');
+        $this->db->join('users', 'users.uid = user_follows.target_uid ', 'left');
+        $this->db->group_by('user_follows.target_uid');
+        $this->db->order_by('count','desc');
+        //$this->db->limit(4,0);
+        $query = $this->db->get();
+        $result = $query->result(); 
+        return $result;
+    }
+
+    function select_user_collections($select_cond){
+        $this->db->select('attachments.image_path, attachments.item_id, image_collects.folder_id,image_collects.user_id, image_collects.created,users.nickname, publishes.uid, publishes.id');
+        $this->db->from('image_collects');
+        $this->db->join('attachments', 'attachments.id = image_collects.image_id ', 'left');
+        $this->db->join('publishes', 'publishes.id = attachments.item_id ', 'left');
+        $this->db->join('users', 'users.uid = publishes.uid ', 'right');
+        $this->db->where($select_cond);
+        $this->db->order_by('image_collects.created','desc');
+        $query = $this->db->get();
+        $result = $query->result(); 
+        return $result;
+    }
+
+    function select_user_follows($select_cond){
+        $this->db->select('users.nickname, users.avatarurl,users.uid');
+        $this->db->from('user_follows');
+        $this->db->join('users', 'users.uid = user_follows.target_uid ', 'left');
+        $this->db->where($select_cond);
+        $this->db->order_by('user_follows.created','desc');
+        $query = $this->db->get();
+        $result = $query->result(); 
+        return $result;
+    }
+
+    function select_post_comments($select_cond){
+        $this->db->select('user_comments.*, users.nickname, users.uid');
+        $this->db->from('user_comments');
+        $this->db->join('users', 'users.uid = user_comments.uid ', 'left');
+        $this->db->where($select_cond);
+        $this->db->order_by('user_comments.created','desc');
+        $query = $this->db->get();
+        $result = $query->result(); 
+        return $result;
+    }
+
+    function select_lessions_join_attachments($select_cond=array()){
+        $this->db->select('lessions.*, attachments.image_path, attachments.type');
+        $this->db->from('lessions');
+        $this->db->join('attachments', 'attachments.item_id = lessions.id and attachments.type="lession" ', 'left');
+        $this->db->where($select_cond);
+        $this->db->order_by('lessions.updated','desc');
+        $query = $this->db->get();
+        $result = $query->result(); 
+        return $result;
+    }
+
+    function select_publishes_join_attachments($uid, $num = "", $offset = ""){
+        $where = "";
+        if( $uid ) {
+            $where = " where uid = ". $uid;
+        }    
+        $sql  = "select s.*, attachments.image_path, attachments.id as aid, attachments.type, users.uid, users.nickname, users.avatarurl";
+        $sql .= " from (select * from  publishes $where order by created desc limit $num, $offset) s left join attachments on attachments.item_id = s.id and attachments.type='publish' ";
+        $sql .= " left join users on users.uid = s.uid ";  
+        return $this->personal_select($sql);
+    }
+
+    function select_user_cover($uid) {     
+        $sql = "select count(*) as count ,image_id, image_path  from `image_collects` left join attachments on attachments.id = image_id where image_uid in (select target_uid from user_follows where uid=$uid)  group by image_id order by count desc limit 1";
+        return $this->personal_select($sql);
+    }
 
    function select($table,$fields="*",$cond="",$num="",$offset="",$order='',$like='',$or_like=''){
 

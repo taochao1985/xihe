@@ -9,14 +9,15 @@
         ok_btn     : $(".confirm_btn"),
         cancel_btn : $(".cancel_btn"),
         error_modal: $(".error_modal"),
-        go_back    : $(".form_go_back")
+        go_back    : $(".form_go_back"),
+        base_url   : $(".hidden_base_url").val()
     };
-
-    var error_modal = {};
+    photo.base_url = common_dom.base_url;
+    photo.error_modal = {};
 
     photo.error_modal = function(opt){
         if ( opt.onok != undefined ){
-            error_modal._onokclick = opt.onok;
+            photo.error_modal._onokclick = opt.onok;
         }
 
         if( opt.id != undefined ){
@@ -30,19 +31,19 @@
         common_dom.error_modal.modal('show');
     };
  
-    error_modal._close = function(){
+    photo.error_modal._close = function(){
         common_dom.error_modal.modal('hide');
     };
 
-    error_modal._ok_clicked = function(){
-        if( error_modal._onokclick ){
-            error_modal._onokclick();
+    photo.error_modal._ok_clicked = function(){
+        if( photo.error_modal._onokclick ){
+            photo.error_modal._onokclick();
         }else{
-            error_modal._close();
+            window.locaiton.reload();
         }
     };
 
-    common_dom.ok_btn.on('click',error_modal._ok_clicked);
+    common_dom.ok_btn.on('click',photo.error_modal._ok_clicked);
     photo._trim = function(item){
         return $.trim(item);
     };
@@ -51,10 +52,10 @@
         return parseInt(item);
     }
 
-    photo._exec_delete =function(url, id){
+    photo._exec_delete =function(url, data){
         photo.RequestDataPost({
             request_url : url ,
-            data        : {id : id },
+            data        : data,
             callback_data : function(data){ 
                 if(data.code == 0){
                     window.location.reload()
@@ -140,7 +141,7 @@
     };
 
     photo._go_next = function(url){
-        setTimeout(function(){ window.location.href=url;},1500);
+        setTimeout(function(){ window.location.href=url;},500);
     }
 
     common_dom.go_back.on('click',photo._go_back);

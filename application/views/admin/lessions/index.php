@@ -17,6 +17,7 @@
           <tr >
             <th>ID</th>
             <th>标题</th>
+            <th>起始时间</th>
             <th>添加时间</th>
             <th>修改时间</th>
             <th>操作</th>
@@ -27,6 +28,7 @@
                 <tr>
                      <td><?php echo $val->id;?></td>
                      <td><?php echo $val->title;?></td> 
+                     <td><?php echo date('Y-m-d H:i:s',$val->start_time);?></td>
                      <td><?php echo date('Y-m-d H:i:s',$val->created);?></td> 
                      <td><?php echo date('Y-m-d H:i:s',$val->updated);?></td> 
                      <td><a href="/admin/lessions/edit/<?php echo $val->id;?>" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i>&nbsp;修改</a>
