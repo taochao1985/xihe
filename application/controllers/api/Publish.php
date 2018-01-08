@@ -119,7 +119,7 @@ class Publish extends CI_Controller{
 *   delete publish acccording to publish id
 */
     function destory (){
-        $uid = 1;
+        $uid = $this->input->post('uid');
         $publish_id = $this->input->post('publish_id');
 
         $publish = $this->show($publish_id);
@@ -129,10 +129,10 @@ class Publish extends CI_Controller{
             }
             $this->photo->translate_begin();
             
-            $del_image = delete_image($this->db, array('type' => 'publish', 'item_id' => $publish_id));
-            $del_publish = $this->photo->delete('publish', array('id' => $publish_id));
-
-            if( $del_publish && $del_image ){
+            $del_image = delete_image($this->photo, array('type' => 'publish', 'item_id' => $publish_id));
+            $del_publish = $this->photo->delete('publishes', array('id' => $publish_id));
+            $comment_delete = $this->photo->delete('user_comments', array('post_id' => $publish_id));
+            if( $del_publish && $del_image && $comment_delete ){
                 $this->photo->translate_commit();
                 echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit; 
             }else{

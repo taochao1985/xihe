@@ -14,7 +14,7 @@
         var id   = photo._int(dom.id.val());
         var name = photo._trim(dom.name.val());
         var sort = photo._trim(dom.sort.val());
-
+        var order= $('input[type="radio"][name="lession_order"]:checked').val();
         if ( name == ""){
             dom.name.parents(".form-group").addClass('has-error');
             return false;
@@ -23,7 +23,8 @@
         var form_data = {
             id   : id,
             name : name,
-            sort : sort
+            sort : sort,
+            order:order
         };
 
         dom.modal.modal('hide');
@@ -40,9 +41,11 @@
     photo._edit_btn_click = function(){
         var item = $(this).parents('tr');
         var id   = photo._int(item.children('td:eq(0)').html());
-        var name = photo._trim(item.children('td:eq(2)').html());
+        var name = photo._trim(item.children('td:eq(3)').html());
+        var order= item.attr('data_lession_order');
         var sort = photo._trim(item.children('td:eq(1)').html());
 
+        $('input[type="radio"][name="lession_order"][value="'+order+'"]').attr('checked', true);
         dom.id.val(id);
         dom.name.val(name);
         dom.sort.val(sort);

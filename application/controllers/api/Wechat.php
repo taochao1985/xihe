@@ -25,6 +25,8 @@ class Wechat extends CI_Controller{
         $uid = $this->create_user($result);
         $info = get_common_userinfo($this->photo, $uid);
         $result['uid'] = $uid;
+        $result['free_trial'] = $info->free_trial;
+        $result['pay_status'] = $info->pay_status;
         $result['userinfo'] = $info->userinfo;
         echo json_encode($result);exit;
     }

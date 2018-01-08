@@ -10,7 +10,7 @@ class News extends CI_Controller{
 *   get lession list according to lession category id
 */
     function list(){
-        $news = $this->photo->select('news','*', array('id > '=> 1));
+        $news = $this->photo->select('news','*', array('id > '=> 2));
         if ($news){
             foreach( $news as $key => $val){
                 $news[$key]->created = date('Y-m-d', $val->created);

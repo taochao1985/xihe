@@ -39,7 +39,7 @@
         if( photo.error_modal._onokclick ){
             photo.error_modal._onokclick();
         }else{
-            window.locaiton.reload();
+            window.location.reload();
         }
     };
 

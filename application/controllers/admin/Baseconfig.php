@@ -69,10 +69,11 @@ class Baseconfig extends CI_Controller{
         $id   = trim($_POST['id']);
         $name = trim($_POST['name']);
         $sort = $_POST['sort'];
+        $order = $_POST['order'];
         if( $id != 0 ){
-            $result = $this->photo->update('lession_type', array('name'=>$name, 'sort' => $sort ), array('id'=>$id));
+            $result = $this->photo->update('lession_type', array('name'=>$name, 'sort' => $sort, 'lession_order' => $order ), array('id'=>$id));
         }else{
-            $result = $this->photo->insert('lession_type', array('name'=>$name, 'sort' => $sort ));
+            $result = $this->photo->insert('lession_type', array('name'=>$name, 'sort' => $sort, 'lession_order' => $order ));
         }
 
         if( $result ){

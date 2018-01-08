@@ -6,6 +6,12 @@ class Lessions extends MY_Controller{
         parent::__construct(); 
     }
 	
+    public function preview(){
+        $id = $this->uri->segment(4);
+        $data = $this->_show($id);
+        $this->load->view('admin/lessions/preview', $data); 
+    }
+
     function index(){
         $data['lession_type'] = $this->photo->select_count_where('lession_type');
         $lessions = $this->photo->select('lessions');
@@ -23,6 +29,11 @@ class Lessions extends MY_Controller{
 
     function edit($id){
         $id = $this->uri->segment(4);
+        $data = $this->_show($id);
+        $this->load->view('admin/lessions/create', $data);   
+    }
+
+    function _show($id){
         $data['lession'] = array();
         $lession = $this->photo->select_lessions_join_attachments(array('lessions.id'=>$id)); 
         if( $lession ){
@@ -30,11 +41,7 @@ class Lessions extends MY_Controller{
         }
         $data['lession_types'] = $this->photo->select('lession_type');
         $data['current_time'] = date('Y-m-d H:i:s');
-        $this->load->view('admin/lessions/create', $data);   
-    }
-
-    function show($id){
-
+        return $data;
     }
     
     function store(){
@@ -55,7 +62,7 @@ class Lessions extends MY_Controller{
         $result = $this->photo->insert('lessions', $data);
         if( $result ){
             save_image($this->photo,array('type' => 'lession', 'image_path'=>trim($_POST['image_path']), 'item_id'=>$result)); 
-            echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit;
+            echo json_encode(array('code'=>0, 'msg'=>'操作成功', 'id' => $result));exit;
         }else{
             echo json_encode(array('code'=>10001, 'msg'=>'操作失败'));exit;
         }
@@ -79,7 +86,7 @@ class Lessions extends MY_Controller{
 
         $result = $this->photo->update('lessions', $data, array('id'=> $id));
         if( $result ){
-            echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit;
+            echo json_encode(array('code'=>0, 'msg'=>'操作成功', 'id' => $id));exit;
         }else{
             echo json_encode(array('code'=>10001, 'msg'=>'操作失败'));exit;
         }

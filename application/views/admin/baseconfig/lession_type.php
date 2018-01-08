@@ -13,6 +13,7 @@
           <tr >
             <th>ID</th>
             <th>排序</th>
+            <th>文章排序</th>
             <th>名称</th> 
             <th>操作</th>
         </tr>
@@ -20,9 +21,10 @@
         <tbody>
           <?php  if($types){
                    foreach ($types as $key=>$val){?>
-                <tr>
+                <tr data_lession_order="<?php echo $val->lession_order;?>">
                      <td><?php echo $val->id;?></td> 
                      <td><?php echo $val->sort;?></td> 
+                     <td><?php if( $val->lession_order == 'asc' ) { echo "正序"; } else { echo '倒序';}?></td> 
                      <td><?php echo $val->name;?></td>
                      <td><button class="btn btn-info btn-xs edit_btn"><i class="fa fa-pencil"></i>&nbsp;修改</button>
                      <button class="btn btn-danger btn-xs delete_btn" data_id="<?php echo $val->id;?>"><i class="fa fa-trash-o"></i>&nbsp;删除</button></td>
@@ -53,6 +55,13 @@
             <label for="lession-type-name" class="control-label col-sm-2">排序:</label>
             <div class="col-sm-10">
                 <input type="text" class="form-control lession_type_sort">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="lession-type-name" class="control-label col-sm-2">文章排序:</label>
+            <div class="col-sm-10">
+                <input type="radio"  name="lession_order" value="asc" checked="true">正序&nbsp;&nbsp;
+                <input type="radio"  name="lession_order" value="desc" >倒序&nbsp;&nbsp;
             </div>
           </div>
         </form>

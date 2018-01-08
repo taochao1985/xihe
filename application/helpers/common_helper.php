@@ -154,5 +154,10 @@ function save_image($db, $data){
 * 	delete image from attachments
 */
 function delete_image($db, $cond){
-	return $db->delete('attachments', $cond);
+	$attachments = $db->select('attachments', 'id', $cond);
+	foreach( $attachments as $key => $val ){
+		$db->delete('image_collects', array('image_id' => $val->id));
+		$db->delete('attachments', array('id' => $val->id));
+	}
+	return true;
 }

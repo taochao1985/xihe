@@ -29,9 +29,14 @@ class Lession extends CI_Controller{
         $type_id = $this->input->get('lt_id');
         $types = $this->type();
         if( $type_id == 0 ){
-            $type_id = $types[0]->id;
+            $type_id = $types[0]->id; 
         }
-        $lessiones = $this->get_lession(array('lt_id' => $type_id ));
+        $cond = array('lt_id' => $type_id );
+        $lession_type = $this->photo->select('lession_type', 'lession_order', array('id' => $type_id));
+        if ( $lession_type ){
+            $order = $lession_type[0]->lession_order;
+        }
+        $lessiones = $this->get_lession($cond, $order);
         echo json_encode(array('code' => 0, 'msg' => '操作成功', 'data' => array('lessions' => $lessiones, 'types'=>$types, 'type_id' => $type_id)));exit;
     }
 
@@ -50,9 +55,9 @@ class Lession extends CI_Controller{
     }
 
 // get lession list according to some conditions
-    function get_lession($cond){
-        $cond['start_time >='] = time(); 
-        $lessions = $this->photo->select_lessions_join_attachments($cond); 
+    function get_lession($cond, $order=""){
+        $cond['start_time <='] = time(); 
+        $lessions = $this->photo->select_lessions_join_attachments($cond, $order); 
         return $this->deal_lessions($lessions);
     }
 
@@ -60,71 +65,6 @@ class Lession extends CI_Controller{
     function type(){
         $type = $this->photo->select('lession_type', '', '', '', '', array('sort' => 'desc'));
         return $type;
-    } 
-
-    public function pay_notify(){
-        $this->load->library('MY_WxPayNotify');
-        $result = $this->my_wxpaynotify->Handle(true);
-    }
-
-    function _generate_pay_params($openId, $uid) {
-        require_once APPPATH."libraries/wechat_pay/lib/WxPay.Api.php";
-        require_once APPPATH."libraries/wechat_pay/WxPay.JsApiPay.php";
-        $tools = new JsApiPay();
-        //②、统一下单
-        $input = new WxPayUnifiedOrder();
-        $order_check = $this->photo->select('user_pay_orders', '*', array('uid' => $uid, 'status' => 0 ));
-        if ( $order_check ){
-            $order_check = $order_check[0];
-            $trade_no = $order_check->pay_id;
-            $amount = $order_check->amount;
-        }else{
-            $trade_no = '1495605242'.time();
-            $amount = 1;
-        }
-        
-        $input->SetBody("test");
-        $input->SetAttach("test");
-        $input->SetOut_trade_no($trade_no);
-        $input->SetTotal_fee($amount);
-        $input->SetTime_start(date("YmdHis"));
-        $input->SetTime_expire(date("YmdHis", time() + 6000));
-        $input->SetGoods_tag("test");
-        $input->SetNotify_url(base_url()."api/lession/pay_notify");
-        $input->SetTrade_type("JSAPI");
-        $input->SetOpenid($openId); 
-        $order = WxPayApi::unifiedOrder($input);
-        if ( $order['result_code'] == 'SUCCESS' ){
-            $jsApiParameters = $tools->GetJsApiParameters($order); 
-            if ( !$order_check ){
-                $order_data = array(
-                    'uid'      => $uid,
-                    'trade_no' => $trade_no,
-                    'created'  => time(),
-                    'amount'   => $amount,
-                    'pay_id'   => $order['prepay_id']
-                );
-                $order_id = $this->photo->insert('user_pay_orders', $order_data);
-            }else{
-                $order_id = $order_check->id;
-            }
-            if( $order_id ){
-                return $jsApiParameters;
-            }else{
-                return false;
-            }
-        }else{
-            return false;
-        }
-        
-    }
-
-    function _create_pay($uid){
-        
-      //  $openid = "oFpQk0aY-zlPQ8YCPT1O4v0WVKAU";
-        $userinfo = get_common_userinfo($this->photo, $uid);
-        return $this->_generate_pay_params($userinfo->openid, $uid);
-        
     }
 
 /*
@@ -163,8 +103,8 @@ class Lession extends CI_Controller{
 
         $lession_user_check = $this->_lession_user_check($uid, $id);
         if( !$lession_user_check ){
-            $params = $this->_create_pay($uid);
-            echo json_encode(array('code' => 10000, 'msg' => '用户未支付', 'data' => $params));exit;
+            //$params = $this->_create_pay($uid);
+            echo json_encode(array('code' => 10000, 'msg' => '用户未支付', 'data' => []));exit;
         }else{
             $lession = $this->get_lession(array('lessions.id'=>$id)); 
             if( $lession ){

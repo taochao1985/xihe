@@ -121,6 +121,7 @@
                 <div class="form-group">
                   <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
                     <button class="btn btn-success save_btn" type="button">保存</button>
+                    <button class="btn btn-success save_btn_preview" type="button">预览</button>
                     <button class="btn btn-primary" type="button" onclick="history.go(-1)">返回</button>
                   </div>
                 </div>

@@ -103,7 +103,7 @@ class Photo extends CI_Model {
     }
 
     function select_user_collections($select_cond){
-        $this->db->select('attachments.image_path, attachments.item_id, image_collects.folder_id,image_collects.user_id, image_collects.created,users.nickname, publishes.uid, publishes.id');
+        $this->db->select('attachments.image_path, attachments.item_id, image_collects.id as collect_id ,image_collects.folder_id,image_collects.user_id, image_collects.created,users.nickname, publishes.uid, publishes.id');
         $this->db->from('image_collects');
         $this->db->join('attachments', 'attachments.id = image_collects.image_id ', 'left');
         $this->db->join('publishes', 'publishes.id = attachments.item_id ', 'left');
@@ -137,12 +137,12 @@ class Photo extends CI_Model {
         return $result;
     }
 
-    function select_lessions_join_attachments($select_cond=array()){
+    function select_lessions_join_attachments($select_cond=array(), $order = 'desc'){
         $this->db->select('lessions.*, attachments.image_path, attachments.type');
         $this->db->from('lessions');
         $this->db->join('attachments', 'attachments.item_id = lessions.id and attachments.type="lession" ', 'left');
         $this->db->where($select_cond);
-        $this->db->order_by('lessions.updated','desc');
+        $this->db->order_by('lessions.created',$order);
         $query = $this->db->get();
         $result = $query->result(); 
         return $result;
@@ -196,7 +196,6 @@ class Photo extends CI_Model {
 
     function update($table,$data,$cond){
        $result = $this->db->update($table,$data,$cond);
-
        return $result;
     }
 

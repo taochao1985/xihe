@@ -6,6 +6,97 @@ class User extends CI_Controller{
         parent::__construct(); 
     }
 
+    public function update_free_trial(){
+        $uid = $this->input->post('uid');
+        $result = $this->photo->update('users', array('free_trial' => 1), array('uid' => $uid));
+
+        if ( $result ){
+            echo json_encode(array('code' => 0, 'msg' => '操作成功'));exit;
+        }else{
+            echo json_encode(array('code' => 10000, 'msg' => '请求失败，请稍后再试' ));exit;
+        }    
+    }
+
+    public function pay_notify(){
+        $this->load->library('MY_WxPayNotify');
+        $result = $this->my_wxpaynotify->Handle(true);
+    }
+
+    function _generate_pay_params($openId, $uid) {
+        require_once APPPATH."libraries/wechat_pay/lib/WxPay.Api.php";
+        require_once APPPATH."libraries/wechat_pay/WxPay.JsApiPay.php";
+        $tools = new JsApiPay();
+        //②、统一下单
+        $input = new WxPayUnifiedOrder();
+        $order_check = $this->photo->select('user_pay_orders', '*', array('uid' => $uid, 'status' => 0 ));
+        $trade_no = '1495605242'.time();
+        if ( $order_check ){
+            $order_check = $order_check[0];
+            $amount = $order_check->amount;
+        }else{            
+            $amount = 1;
+        }
+        
+        $input->SetBody("test");
+        $input->SetAttach("test");
+        $input->SetOut_trade_no($trade_no);
+        $input->SetTotal_fee($amount);
+        $input->SetTime_start(date("YmdHis"));
+        $input->SetTime_expire(date("YmdHis", time() + 6000));
+        $input->SetGoods_tag("test");
+        $input->SetNotify_url(base_url()."api/user/pay_notify");
+        $input->SetTrade_type("JSAPI");
+        $input->SetOpenid($openId); 
+        $order = WxPayApi::unifiedOrder($input); 
+        if ( $order['result_code'] == 'SUCCESS' ){
+            $jsApiParameters = $tools->GetJsApiParameters($order); 
+            if ( !$order_check ){
+                $order_data = array(
+                    'uid'      => $uid,
+                    'trade_no' => $trade_no,
+                    'created'  => time(),
+                    'amount'   => $amount,
+                    'pay_id'   => $order['prepay_id']
+                );
+                $order_id = $this->photo->insert('user_pay_orders', $order_data);
+            }else{
+                $order_id = $order_check->id;
+                $this->photo->update('user_pay_orders', array('trade_no' => $trade_no), array('id' => $order_id));
+            }
+            if( $order_id ){
+                return $jsApiParameters;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+        
+    }
+
+    function _create_pay($uid){
+         
+        $userinfo = get_common_userinfo($this->photo, $uid);
+        return $this->_generate_pay_params($userinfo->openid, $uid);
+        
+    }
+
+/*
+*   create wechat pay and local order record 
+*   according to uid
+*/
+    function create_wechat_pay(){
+        $uid    = $this->input->post('uid');
+        $params = $this->_create_pay($uid);
+        if ( $params ){
+            echo json_encode(array('code' => 0, 'msg' => '用户未支付', 'data' => $params ));exit;
+        }else{
+            echo json_encode(array('code' => 10000, 'msg' => '请求失败，请稍后再试' ));exit;
+        }
+       
+    }
+
+
     function apply_agent(){
         $uid = $this->input->post('uid');
         $agent_check = $this->photo->select('user_agent_apply','*',array('uid' => $uid));
@@ -122,11 +213,10 @@ class User extends CI_Controller{
             }
         }
 
-        $agent_apply_news = $this->photo->select('news', 'description', array('id' => 2));
+        $agent_apply_news = $this->photo->select('news', 'description, title', array('id' => 2));
         $description = $agent_apply_news[0]->description;
-        $description = ltrim($description, '<p>');
-        $description = rtrim($description, '</p>');
-        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'count' => $count, 'agent_status' => $agent_status, 'reason' => $reason, 'apply_note' => $description ));exit; 
+        $apply_title = $agent_apply_news[0]->title;
+        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'count' => $count, 'agent_status' => $agent_status, 'reason' => $reason, 'apply_note' => $description, 'apply_title' => $apply_title ));exit; 
     }
 
     function follows(){
@@ -143,9 +233,7 @@ class User extends CI_Controller{
         echo json_encode(array('code' => 0, 'msg' => '操作成功', 'users' => $follows ));exit; 
     }
 
-    function collections(){
-        $uid = $this->input->get('uid');
-        $folder_id = $this->input->get('folder_id');
+    function _get_collections($uid, $folder_id){
         $cond = array('image_collects.user_id' => $uid);
         if ($folder_id != 0 ){
             $cond['image_collects.folder_id'] = $folder_id;
@@ -158,7 +246,22 @@ class User extends CI_Controller{
             $collections[$key]->nickname = base64_decode($val->nickname);
         }
         $folders = $this->_get_folders($uid);
-        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'collections' => $collections, 'folders' => $folders ));exit; 
+        $folders_org = $folders;
+        if ( count($folders_org) > 0 ){
+            $return_array = array();
+            foreach ($folders_org as $key => $value) {
+                $return_array[] = $value->folder_name;
+            }
+            $folders_org = $return_array;
+        }
+        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'collections' => $collections, 'folders' => $folders, 'folders_org' => $folders_org ));exit; 
+    }
+
+    function collections(){
+        $uid = $this->input->get('uid');
+        $folder_id = $this->input->get('folder_id');
+
+        $this->_get_collections($uid, $folder_id);
     }
 
 	
@@ -211,6 +314,45 @@ class User extends CI_Controller{
             $result = $this->photo->delete('user_follows', $follow_data);
         } 
         echo json_encode(array('code'=>0, 'msg'=>'操作成功', 'is_follow' => $follow, 'target_uid' => $target_uid));exit;    
+    }
+
+    function update_collect_image(){
+        $collect_id  = $this->input->post('collect_id');
+        $folder_name = $this->input->post('folder_name');
+        $uid         = $this->input->post('uid');
+        $folder_check = $this->photo->select('user_folders','id',array('uid' => $uid, 'folder_name' => $folder_name));
+        if( $folder_check ){
+            $folder_id = $folder_check[0]->id;
+        }else{
+            $folder_id = 0;
+        }
+      
+        $result = $this->photo->update('image_collects', array('folder_id' => $folder_id ), array('id' => $collect_id));
+        if ( $result ){
+            $this->_get_collections($uid, 0);
+        } 
+    }
+
+    function delete_collect(){
+        $collect_id = $this->input->post('collect_id');
+        $uid        = $this->input->post('uid');
+
+        $collect_check = $this->photo->select('image_collects', '*', array('id' => $collect_id));
+        if ( !$collect_check ){
+            echo json_encode(array('code'=>10000, 'msg'=>'记录不存在'));exit;
+        }else{
+            $collect = $collect_check[0];
+            if( $collect->user_id != $uid ){
+                echo json_encode(array('code'=>10000, 'msg'=>'没有权限'));exit;
+            }else{
+                $result = $this->photo->delete('image_collects', array('id' => $collect->id));
+                if ( $result ){
+                    echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit;    
+                }else{
+                    echo json_encode(array('code'=>10000, 'msg'=>'操作失败'));exit;   
+                }
+            }
+        }
     }
 
 /*

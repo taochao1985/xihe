@@ -6,6 +6,7 @@
         description : $(".description"),
         editor      : null,
         save_btn    : $(".save_btn"),
+        preview_btn : $(".save_btn_preview"),
         video_input : $(".hidden_video_input"),
         audio_input : $(".hidden_audio_input"),
         image_input : $(".hidden_image_input"),
@@ -13,7 +14,8 @@
         id          : $(".lession_id"),
         lt_id       : $(".lt_id"),
         title       : $(".title"),
-        current_time: $(".current_time")
+        current_time: $(".current_time"),
+        preview_flag: 0
     };
 
     photo._init_editor = function(){
@@ -66,7 +68,13 @@
             data        : form_data,
             callback_data : function(data){ 
                 photo.error_modal({
-                    onok : function(){ photo._go_next('/admin/lessions');}, 
+                    onok : function(){
+                        if ( dom.preview_flag ){
+                            window.open('/admin/lessions/preview/' + data.id);
+                        }else{
+                            photo._go_next('/admin/lessions');
+                        }
+                    }, 
                     msg  : data.msg
                 });
             }
@@ -118,6 +126,11 @@
         photo._save_form_data(form_data, request_url);
     };
 
+    photo._get_form_data_preview = function(){
+        dom.preview_flag = 1;
+        photo._get_form_data();
+    };
+
     dom.start_time.datetimepicker({
         weekStart: 1,
         todayBtn: 1,
@@ -132,5 +145,6 @@
 
     photo._init_editor();
 
+    dom.preview_btn.on('click',photo._get_form_data_preview);
     dom.save_btn.on('click',photo._get_form_data);
 })(window)
