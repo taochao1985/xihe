@@ -62,12 +62,16 @@
                 </div>
                 <div class="name_area upload-process name-area pull-left"></div>
                 <span class="clearfix"></span>
+                <div><br>建议上传：750*480的图</div>
               </div>
             </div> 
           <div class="form-group">
             <label for="lession-type-name" class="control-label col-sm-2">关联链接:</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control relate_url">
+                <input type="text" class="form-control relate_url"><br>
+                <p>公告链接：/pages/users/pages/news/detail?id=XXXXX</p>
+                <p>课程链接：/pages/lessions/pages/detail?id=XXXX</p>
+                <p class="red">其中XXXX：是对应的内容id</p>  
             </div>
           </div>
         </form>

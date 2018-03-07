@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
  
-class Baseconfig extends CI_Controller{
+class Baseconfig extends MY_Controller{
     function __construct(){
         parent::__construct(); 
     }
@@ -70,10 +70,11 @@ class Baseconfig extends CI_Controller{
         $name = trim($_POST['name']);
         $sort = $_POST['sort'];
         $order = $_POST['order'];
+        $desc = $_POST['desc'];
         if( $id != 0 ){
-            $result = $this->photo->update('lession_type', array('name'=>$name, 'sort' => $sort, 'lession_order' => $order ), array('id'=>$id));
+            $result = $this->photo->update('lession_type', array('name'=>$name, 'desc'=>$desc, 'sort' => $sort, 'lession_order' => $order ), array('id'=>$id));
         }else{
-            $result = $this->photo->insert('lession_type', array('name'=>$name, 'sort' => $sort, 'lession_order' => $order ));
+            $result = $this->photo->insert('lession_type', array('name'=>$name, 'desc'=>$desc, 'sort' => $sort, 'lession_order' => $order ));
         }
 
         if( $result ){
@@ -103,6 +104,64 @@ class Baseconfig extends CI_Controller{
 
         echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit; 
     }
+
+    function update_restrict_words_cache(){
+        $restrict_words = $this->photo->select('restrict_words');
+        $words = array();
+        //创建一个空的trie tree
+        $resTrie = trie_filter_new();
+        if ( count($restrict_words) > 0 ){
+            foreach($restrict_words as $k => $v){
+                trie_filter_store($resTrie, $v->words);
+            }
+        }
+        //生成敏感词文件
+        trie_filter_save($resTrie,'./dirty_words.dic');
+        return true;
+    }
+
+/*
+*  get all lession types
+*/
+    function restrict_words(){
+        
+        $data['types'] = $this->photo->select('restrict_words', '', '', '', '', array('id' => 'desc'));
+        $this->load->view('admin/baseconfig/restrict_words', $data);
+    }
+
+/*
+*   insert or update lession type
+*   according to id
+*/
+    function restrict_words_store(){
+        $id    = trim($_POST['id']);
+        $words = $this->input->post('words');
+        if( $id != 0 ){
+            $result = $this->photo->update('restrict_words', array('words'=>$words), array('id'=>$id));
+        }else{
+            $result = $this->photo->insert('restrict_words', array('words'=>$words));
+        }
+        
+        if( $result ){
+            $this->update_restrict_words_cache();
+            echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit;
+        }else{
+            echo json_encode(array('code'=>10001, 'msg'=>'操作失败'));exit;
+        }
+    }
+
+/*
+*   delete lession type
+*   according to id
+*/
+    function restrict_words_delete(){
+        $id = trim($_POST['id']); 
+    
+        $result2 = $this->photo->delete('restrict_words',array('id' => $id));      
+
+        echo json_encode(array('code'=>0, 'msg'=>'操作成功'));exit; 
+    }
+
 
 /*
 *   checkout lessions count 

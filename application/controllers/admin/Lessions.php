@@ -50,6 +50,7 @@ class Lessions extends MY_Controller{
             'video_path' => trim($_POST['video_path']),
             'audio_path' => trim($_POST['audio_path']),
             'video_name' => trim($_POST['video_name']),
+            'video_image'=> base_url().trim($_POST['video_image']),
             'audio_name' => trim($_POST['audio_name']),
             'description'=> trim($_POST['description']),
             'lt_id'      => trim($_POST['lt_id']),
@@ -72,9 +73,15 @@ class Lessions extends MY_Controller{
         $id = $_POST['id'];
         delete_image($this->photo,array('type'=>'lession', 'item_id'=>$id));
         $image_id = save_image($this->photo,array('type' => 'lession', 'image_path'=>trim($_POST['image_path']), 'item_id'=>$id));
+        $video_image = trim($_POST['video_image']);
+        $base_url = base_url();
+        if (strpos($video_image, $base_url)){
+            $video_image = $base_url.$video_image;
+        }
         $data = array(
             'video_path' => trim($_POST['video_path']),
             'audio_path' => trim($_POST['audio_path']),
+            'video_image'=> $video_image,
             'video_name' => trim($_POST['video_name']),
             'audio_name' => trim($_POST['audio_name']),
             'description'=> trim($_POST['description']),

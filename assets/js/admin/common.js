@@ -110,6 +110,21 @@
     };  
 
     var upload_url = "/admin/fileupload";
+    photo._check_img_type = function(filepath, tp){
+        var re       = /( \\+)/g;
+        var filename = filepath.replace(re,"#");
+        var one      = filename.split("#");
+        var two      = one[one.length-1];
+        var three    = two.split(".");
+        var last     = three[three.length-1];
+        var rs       = tp.indexOf(last);
+
+        if(rs >= 0){
+            return true;
+        }else{
+            return false;
+        }
+    };
 
     photo._init_fileupload = function(opt){
     	opt.target.fileupload({
@@ -119,6 +134,18 @@
 	        done: function (e, data) {
 	        	photo._file_uploaded(data.result, opt.name_area, opt.file_type, opt.target_input); 
 	        }, 
+            add :function (e, data) {
+                $.each(data.files, function (index, file) {
+                     // if( !photo._check_img_type(file.name, opt.file_cate) ){
+                     //    common_dom.imgSize_limit.find('.limit_size_info').find('span').html(file.name);
+                     //    common_dom.imgSize_limit.modal('show');
+                     //    console.log(file.size);return false;
+                     // }else{
+                     //    common_dom.imgSize_limit.modal('hide');
+                        data.submit();
+                     // }
+                });
+            },
 	        progressall: function (e, data) {
                 opt.name_area.addClass('hidden');
                 opt.upload_process.removeClass('hidden');

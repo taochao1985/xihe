@@ -30,6 +30,19 @@ class Fileupload extends CI_Controller {
         $filename = date("Ymd", time()).$random.'.'.$ext; 
         return $filename;
     } 
+
+    public function dealthumb($path){
+        $config['image_library'] = 'gd2';
+        $config['source_image'] = $path;
+        $config['create_thumb'] = TRUE;
+        //生成的缩略图将在保持纵横比例 在宽度和高度上接近所设定的width和height
+        $config['new_image'] = $path;
+        $config['width'] = 360;
+        $this->load->library('image_lib', $config);
+        $this->image_lib->resize();
+        $this->image_lib->clear();
+    }   
+    
        
     function index(){    
         $new_name                = $this->rename_file($_FILES['userfile']['name']);
@@ -48,6 +61,9 @@ class Fileupload extends CI_Controller {
             echo json_encode(array('errno'=>10001,'msg'=>$error));exit;
         }else{
             $data = $this->upload->data();
+            if($data['is_image'] == 1) {
+                $this->dealthumb($data['full_path']);
+            }
             $data['final_path'] = $target_folder; 
             echo json_encode(array('errno'=>0,'msg'=>'success','data'=>$data));exit;
         }

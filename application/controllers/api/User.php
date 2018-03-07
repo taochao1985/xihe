@@ -6,6 +6,68 @@ class User extends CI_Controller{
         parent::__construct(); 
     }
 
+    function update_userinfo (){
+        $uid        = $this->input->get('uid');
+        $real_name  = $this->input->post('real_name');
+        $wechat_num = $this->input->post('wechat_num');
+        $province   = $this->input->post('province');
+        $address    = $this->input->post('address');
+        $device     = $this->input->post('device');
+        $metals     = $this->input->post('metals');
+        $sex        = $this->input->post('sex');
+
+        if ( $uid > 0 ){
+            $userinfo = $this->_get_userinfo($uid);
+            if( !$userinfo ){
+                echo json_encode(array('code'=>1001, 'msg'=>'用户不存在'));exit; 
+            }
+            $user_data = array(
+                'real_name'  => $real_name,
+                'wechat_num' => $wechat_num,
+                'sex'        => $sex,
+                'province'   => $province,
+                'address'    => $address,
+                'device'     => $device,
+                'metals'     => $metals
+            );
+
+            $result = $this->photo->update('users', $user_data, array('uid' => $uid));
+            if ( $result ){
+                echo json_encode(array('code' => 0, 'msg' => '操作成功' ));exit;
+            }else {
+                echo json_encode(array('code' => 10000, 'msg' => '操作失败' ));exit;
+            }
+        }else{
+            echo json_encode(array('code' => 10000, 'msg' => '用户不存在' ));exit;
+        }
+    }
+
+    function get_userinfo () {
+        $uid = $this->input->get('uid');
+        $userinfo = get_common_userinfo($this->photo, $uid, 'uid,real_name,sex,wechat_num,province,address,device,metals');
+        if ( $userinfo ){
+            echo json_encode(array('code' => 0, 'msg' => '操作成功', 'data' => $userinfo ));exit;
+        }else {
+            echo json_encode(array('code' => 10000, 'msg' => '操作失败' ));exit;
+        }
+    }
+
+    function agent_record(){
+        $uid = $this->uri->segment(4);
+        $users = $this->photo->select('users','nickname,agent_id,uid, pay_time', array('agent_id'=> $uid, 'pay_status' => 1), '', '', array('pay_time' => 'desc'));
+        $member_count = count($users);
+        if ($users){
+            foreach( $users as $key => $val){
+                if( $val->nickname ){ 
+                    $val->nickname = base64_decode($val->nickname);
+                    $users[$key] = $val;
+                }
+                $users[$key]->pay_time = date('Y-m-d', $val->pay_time);
+            }
+        } 
+        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'data' => array('records' => $users, 'member_count' => $member_count ,'metal_count' => $member_count * 1800)));exit; 
+    }
+
     public function update_free_trial(){
         $uid = $this->input->post('uid');
         $result = $this->photo->update('users', array('free_trial' => 1), array('uid' => $uid));
@@ -16,6 +78,7 @@ class User extends CI_Controller{
             echo json_encode(array('code' => 10000, 'msg' => '请求失败，请稍后再试' ));exit;
         }    
     }
+
 
     public function pay_notify(){
         $this->load->library('MY_WxPayNotify');
@@ -29,20 +92,21 @@ class User extends CI_Controller{
         //②、统一下单
         $input = new WxPayUnifiedOrder();
         $order_check = $this->photo->select('user_pay_orders', '*', array('uid' => $uid, 'status' => 0 ));
-        $trade_no = '1495605242'.time();
+        $start = time();
+        $trade_no = '1495605242'.$start;
         if ( $order_check ){
             $order_check = $order_check[0];
             $amount = $order_check->amount;
         }else{            
-            $amount = 1;
+            $amount = 388 * 100;
         }
         
-        $input->SetBody("test");
-        $input->SetAttach("test");
+        $input->SetBody("兮和摄影俱乐部");
+        $input->SetAttach("兮和摄影俱乐部");
         $input->SetOut_trade_no($trade_no);
         $input->SetTotal_fee($amount);
         $input->SetTime_start(date("YmdHis"));
-        $input->SetTime_expire(date("YmdHis", time() + 6000));
+        $input->SetTime_expire(date("YmdHis", $start + 6000));
         $input->SetGoods_tag("test");
         $input->SetNotify_url(base_url()."api/user/pay_notify");
         $input->SetTrade_type("JSAPI");
@@ -54,14 +118,14 @@ class User extends CI_Controller{
                 $order_data = array(
                     'uid'      => $uid,
                     'trade_no' => $trade_no,
-                    'created'  => time(),
+                    'created'  => $start,
                     'amount'   => $amount,
                     'pay_id'   => $order['prepay_id']
                 );
                 $order_id = $this->photo->insert('user_pay_orders', $order_data);
             }else{
                 $order_id = $order_check->id;
-                $this->photo->update('user_pay_orders', array('trade_no' => $trade_no), array('id' => $order_id));
+                $this->photo->update('user_pay_orders', array('trade_no' => $trade_no, 'pay_id'   => $order['prepay_id']), array('id' => $order_id));
             }
             if( $order_id ){
                 return $jsApiParameters;
@@ -96,7 +160,6 @@ class User extends CI_Controller{
        
     }
 
-
     function apply_agent(){
         $uid = $this->input->post('uid');
         $agent_check = $this->photo->select('user_agent_apply','*',array('uid' => $uid));
@@ -107,6 +170,10 @@ class User extends CI_Controller{
                 'uid'     => $uid,
                 'created' => time()
             );
+            $wechat_num = $this->input->post('wechat_num');
+            $mobile = $this->input->post('mobile');
+            
+            $this->photo->update('users',array('mobile' => $mobile, 'wechat_num' => $wechat_num), array('uid' => $uid));
             $result = $this->photo->insert('user_agent_apply', $agent_data);
             if ( $result ){
                 echo json_encode(array('code' => 0, 'msg' => '申请成功'));exit;
@@ -196,8 +263,9 @@ class User extends CI_Controller{
     function get_follow_count(){
         $uid = $this->input->get('uid');
         $count = $this->photo->select_count_where('user_follows',array('target_uid' => $uid));
-        $agent_flag = $this->photo->select('users','agent_status',array('uid' => $uid));
+        $agent_flag = $this->photo->select('users','agent_status, agent_qrcode',array('uid' => $uid));
         $agent_status = $agent_flag[0]->agent_status;
+        $agent_qrcode = $agent_flag[0]->agent_qrcode;
         $reason = "";
         if ( $agent_status != 1 ){
             $agent_apply = $this->photo->select('user_agent_apply', '*', array('uid' => $uid ));
@@ -213,10 +281,68 @@ class User extends CI_Controller{
             }
         }
 
+        if ( $agent_qrcode != ""){
+            $agent_qrcode = base_url().$agent_qrcode;
+        }
+
         $agent_apply_news = $this->photo->select('news', 'description, title', array('id' => 2));
         $description = $agent_apply_news[0]->description;
         $apply_title = $agent_apply_news[0]->title;
-        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'count' => $count, 'agent_status' => $agent_status, 'reason' => $reason, 'apply_note' => $description, 'apply_title' => $apply_title ));exit; 
+
+        $pay_apply_news = $this->photo->select('news', 'description, title', array('id' => 3));
+        $pay_description = $pay_apply_news[0]->description;
+        $pay_title = $pay_apply_news[0]->title;
+
+    //会员无效
+        $member_valid = 0;
+        $valid_time = "";
+        if( $uid ){
+            $userinfo = get_common_userinfo($this->photo, $uid);
+            $pay_status = $userinfo->pay_status;
+
+            if ( $pay_status == 1 ){
+                $payed_order = $this->photo->select('user_pay_orders', 'updated', array('uid' => $uid, 'status' => 1), '','',array('updated' => 'asc'));
+                $invalid_time = $payed_order[0]->updated + 3600 * 24 *365 * count($payed_order);
+
+                $valid_time = date('Y年m月d日',$invalid_time);
+                if ( time() < $invalid_time ){
+                    //会员有效
+                    $member_valid = 1;
+                }
+            }else if ( $pay_status == 2 ){
+                $pay_time = $userinfo->pay_time;
+                if ( !$pay_time ){
+                    $pay_time = time();
+                    $this->photo->update('users', array('pay_time' => $pay_time), array('uid' => $uid));
+                }
+                $invalid_time = $pay_time + 3600 * 24 *365 ;
+
+                $valid_time = date('Y年m月d日',$invalid_time);
+                if ( time() < $invalid_time ){
+                    //会员有效
+                    $member_valid = 1;
+                }
+            }
+
+            if ( $member_valid == 0 ){
+                $this->photo->update('users', array('pay_status' => 0 ), array('uid' => $uid));
+            }
+        }
+
+        echo json_encode(array('code' => 0, 
+            'msg' => '操作成功', 
+            'count' => $count, 
+            'agent_status' => $agent_status, 
+            'reason' => $reason, 
+            'apply_note' => $description, 
+            'apply_title' => $apply_title ,
+            'pay_note' => $pay_description, 
+            'pay_title' => $pay_title ,
+            'agent_qrcode' => $agent_qrcode,
+            'pay_status' => $pay_status,
+            'valid_time' => $valid_time,
+            'member_valid' => $member_valid
+        ));exit; 
     }
 
     function follows(){
@@ -239,11 +365,15 @@ class User extends CI_Controller{
             $cond['image_collects.folder_id'] = $folder_id;
         }
         $collections = $this->photo->select_user_collections($cond);
+        $collect_images = array();
         foreach($collections as $key => $val){
             $val->image_path = ltrim($val->image_path,'/');
+            
+            $collections[$key]->image_path_thumb = base_url().get_rename_image($val->image_path);
             $collections[$key]->image_path = base_url().$val->image_path;
             $collections[$key]->created = date('Y-m-d', $val->created);
             $collections[$key]->nickname = base64_decode($val->nickname);
+            $collect_images[] = $val->image_path;
         }
         $folders = $this->_get_folders($uid);
         $folders_org = $folders;
@@ -254,7 +384,16 @@ class User extends CI_Controller{
             }
             $folders_org = $return_array;
         }
-        echo json_encode(array('code' => 0, 'msg' => '操作成功', 'collections' => $collections, 'folders' => $folders, 'folders_org' => $folders_org ));exit; 
+
+        echo json_encode(
+            array(
+                'code' => 0, 
+                'msg' => '操作成功', 
+                'collections' => $collections, 
+                'folders' => $folders, 
+                'folders_org' => $folders_org, 
+                'collect_images' => implode(';', $collect_images) 
+            ));exit; 
     }
 
     function collections(){
@@ -271,6 +410,7 @@ class User extends CI_Controller{
 
     function show(){
         $uid = $this->uri->segment(4);
+        $current_id = $this->uri->segment(5);
         $userinfo = $this->_get_userinfo($uid);
         if( !$userinfo ){
             echo json_encode(array('code'=>1001, 'msg'=>'用户不存在'));exit; 
@@ -284,7 +424,15 @@ class User extends CI_Controller{
                 $cover = base_url().$coverimage;
             }
             $follow_count = $this->photo->select_count_where('user_follows', array('target_uid' => $uid));
-            echo json_encode(array('code' => 0, 'msg' => '操作成功', 'data' => $userinfo, 'cover' => $cover, 'follow_count' => $follow_count ));exit; 
+            $is_follow = 0;
+            if ( $current_id ){
+                $follow_flag  = $this->photo->select('user_follows', '*', array('target_uid' => $uid, 'uid' => $current_id));
+                if ( count($follow_flag) > 0 ){
+                    $is_follow = 1;
+                }
+            }
+            
+            echo json_encode(array('code' => 0, 'msg' => '操作成功', 'data' => $userinfo, 'cover' => $cover, 'follow_count' => $follow_count, 'is_follow' => $is_follow ));exit; 
         }
     }
 
@@ -307,13 +455,15 @@ class User extends CI_Controller{
         $follow     = $this->input->post('follow');
 
         $follow_data = array('uid' => $uid, 'target_uid' => $target_uid );
-        if( $follow == 1){
+        $follow_count = $this->photo->select_count_where('user_follows', $follow_data);
+        if(( $follow == 1) && ( $follow_count == 0 )){
             $follow_data['created'] = time();
             $result = $this->photo->insert('user_follows', $follow_data);
         }else{
             $result = $this->photo->delete('user_follows', $follow_data);
         } 
-        echo json_encode(array('code'=>0, 'msg'=>'操作成功', 'is_follow' => $follow, 'target_uid' => $target_uid));exit;    
+        $follow_count = $this->photo->select_count_where('user_follows', array('target_uid' => $target_uid));
+        echo json_encode(array('code'=>0, 'msg'=>'操作成功', 'is_follow' => $follow, 'target_uid' => $target_uid, 'follow_count' => $follow_count ));exit;    
     }
 
     function update_collect_image(){

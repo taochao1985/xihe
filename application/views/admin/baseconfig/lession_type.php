@@ -22,7 +22,9 @@
           <?php  if($types){
                    foreach ($types as $key=>$val){?>
                 <tr data_lession_order="<?php echo $val->lession_order;?>">
-                     <td><?php echo $val->id;?></td> 
+                     <td> <span><?php echo $val->id;?></span>
+                       <div class="hidden"><?php echo $val->desc;?></div>
+                     </td> 
                      <td><?php echo $val->sort;?></td> 
                      <td><?php if( $val->lession_order == 'asc' ) { echo "正序"; } else { echo '倒序';}?></td> 
                      <td><?php echo $val->name;?></td>
@@ -37,7 +39,7 @@
 </div>
 
 <div class="modal fade lession_type_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -49,6 +51,13 @@
             <label for="lession-type-name" class="control-label col-sm-2">类别名称:</label>
             <div class="col-sm-10">
                 <input type="text" class="form-control lession_type_name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="lession-type-name" class="control-label col-sm-2">基础介绍:</label>
+            <div class="col-sm-10">
+                <script id="desc" name="desc" type="text/plain">
+                </script>
             </div>
           </div>
           <div class="form-group">
@@ -75,5 +84,8 @@
   </div>
 </div>
 
+<script type="text/javascript" src="/assets/ueditor/ueditor.config.js"></script>
+    <!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/assets/ueditor/ueditor.all.js"></script>
 <script src="/assets/js/admin/lession_type.js"></script>
 <?php $this->load->view('admin/common_footer');?>

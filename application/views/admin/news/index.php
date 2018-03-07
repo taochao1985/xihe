@@ -31,7 +31,7 @@
                      <td><?php echo date('Y-m-d H:i:s',$val->updated);?></td> 
                      <td>
                         <a href="/admin/news/edit/<?php echo $val->id;?>" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i>&nbsp;修改</a>
-                        <?php if($val->id > 2){ ?>
+                        <?php if($val->id > 3){ ?>
                             <a href="javascript:void(0)" class="btn btn-danger btn-xs delete_configs" data_id="<?php echo $val->id;?>"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
                         <?php }?>
                     </td>

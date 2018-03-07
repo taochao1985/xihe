@@ -18,13 +18,18 @@ class Publish extends CI_Controller{
         }
 
         $usercheck = $this->_check_user($uid);
-        if( !$usercheck ){
-            echo json_encode(array('code'=>1001, 'msg'=>'用户不存在'));exit; 
+        if( !$usercheck || !$usercheck[0]->avatarurl ){
+            echo json_encode(array('code'=>1002, 'msg'=>'【兮和摄影俱乐部】小程序需要获取你的用户资料，用于登录。请重试登录，并确保允许小程序获取用户资料'));exit; 
         }
 
         $publish = $this->show($post_id);
         if( !$publish ){
             echo json_encode(array('code' => 10002, 'msg' => '作品不存在'));exit;
+        }
+
+        $check_result = restrict_word_check($content);
+        if ( count($check_result) > 0 ){
+            echo json_encode(array('code'=>1003, 'msg'=>'本俱乐部禁止发广告、涉黄、涉政等言论！'));exit;
         }
 
         $comment_data = array(
@@ -49,7 +54,7 @@ class Publish extends CI_Controller{
 *   check user exist or not according to userid
 */
     private function _check_user($uid){
-        return $this->photo->select('users', 'uid', array('uid' => $uid ));
+        return $this->photo->select('users', 'uid, avatarurl', array('uid' => $uid ));
     }
 
 /*
@@ -63,12 +68,13 @@ class Publish extends CI_Controller{
         }else{
             $publishes_count = $this->photo->select_count_where('publishes', array('uid' => $uid)); 
             $publishes       = $this->_get_publishes(0, 4, $uid);
-            echo json_encode(array(
-                                    'code' => 0, 
-                                    'data' => $publishes, 
-                                    'today' => date('Y-m-d'),
-                                    'total_pages' => ceil($publishes_count/4)
-                                ));exit;
+            echo json_encode(
+                array(
+                    'code' => 0, 
+                    'data' => $publishes, 
+                    'today' => date('Y-m-d'),
+                    'total_pages' => ceil($publishes_count/4)
+                ));exit;
         }    
     }
 	 
@@ -87,11 +93,58 @@ class Publish extends CI_Controller{
         return $publishes;
     }
 
+    function store_object(){
+        $image_path  = $this->input->post('image_path');
+        $description = $this->input->post('description');
+        $uid         = $this->input->post('user_id'); 
+        $usercheck = $this->_check_user($uid);
+        if( !$usercheck || !$usercheck[0]->avatarurl ){
+            echo json_encode(array('code'=>1002, 'msg'=>'【兮和摄影俱乐部】小程序需要获取你的用户资料，用于登录。请重试登录，并确保允许小程序获取用户资料'));exit; 
+        }
+
+        if( !$image_path || !$description ){
+            echo json_encode(array('code'=>1001, 'msg'=>'作品信息不完善！'));exit;
+        }
+        $check_result = restrict_word_check($description);
+        if ( count($check_result) > 0 ){
+            echo json_encode(array('code'=>1003, 'msg'=>'本俱乐部禁止发广告、涉黄、涉政等言论！'));exit;
+        }
+
+        $publish_data = array(
+            'description' => $description,
+            'uid'         => $uid,
+            'created'     => time()
+        );
+
+        $publish_id = $this->photo->insert('publishes', $publish_data);
+        if ($publish_id ){
+            if ($image_path != ""){
+                $image_path = json_decode($image_path);
+                foreach( $image_path as $key => $item) {
+                        save_image($this->photo,array('type' => 'publish', 'image_path'=>$item, 'item_id'=>$publish_id)); 
+                }
+            }
+            echo json_encode(array('code' => 0, 'msg' => '发布成功'));exit;
+        }  
+    }
+
 
     function store(){
         $image_path  = $this->input->post('image_path');
         $description = $this->input->post('description');
         $uid         = $this->input->post('user_id'); 
+        $usercheck = $this->_check_user($uid);
+        if( !$usercheck || !$usercheck[0]->avatarurl ){
+            echo json_encode(array('code'=>1002, 'msg'=>'【兮和摄影俱乐部】小程序需要获取你的用户资料，用于登录。请重试登录，并确保允许小程序获取用户资料'));exit; 
+        }
+
+        if( !$image_path || !$description ){
+            echo json_encode(array('code'=>1001, 'msg'=>'作品信息不完善！'));exit;
+        }
+        $check_result = restrict_word_check($description);
+        if ( count($check_result) > 0 ){
+            echo json_encode(array('code'=>1003, 'msg'=>'本俱乐部禁止发广告、涉黄、涉政等言论！'));exit;
+        }
 
         $publish_data = array(
             'description' => $description,
@@ -104,12 +157,11 @@ class Publish extends CI_Controller{
             if ($image_path != ""){
                 $image_path = explode(';', $image_path);
                 for( $i = 0 ; $i < count($image_path); $i++ ){
-                    if( $image_path[$i] ){
+                    if( $image_path[$i] && ($i < 9 ) ){
                         save_image($this->photo,array('type' => 'publish', 'image_path'=>$image_path[$i], 'item_id'=>$publish_id)); 
                     }
                 }
             }
-
             echo json_encode(array('code' => 0, 'msg' => '发布成功'));exit;
         }  
     }

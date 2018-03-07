@@ -884,6 +884,12 @@ body .container.body .right_col {
 .green {
   color: #1ABB9C;
 }
+.info {
+  color: #5bc0de;
+}
+.yellow {
+  color: #f0ad4e;
+}
 .aero {
   color: #9CC2CB;
 }
@@ -3370,7 +3376,7 @@ a.btn-success, a.btn-primary, a.btn-warning, a.btn-danger {
 textarea {
   padding: 10px;
   vertical-align: top;
-  width: 200px;
+  
 }
 textarea:focus {
   outline-style: solid;

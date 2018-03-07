@@ -1,17 +1,38 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Admin extends CI_Controller {
+class Admin extends MY_Controller {
     private $tokenFile;
     private $lastTimeFile;
     private $expire = 7000;
     function __construct()
     {
         parent::__construct();
-        $this->load->model("music");
+        $this->load->model("photo");
         define('PERPAGE', 10);
         $this->load->helper('file');
         $this->load->library('zip');
+    }
+
+    public function dealthumb($path){
+        $config['image_library'] = 'gd2';
+        $config['source_image'] = $path;
+        $config['create_thumb'] = TRUE;
+        //生成的缩略图将在保持纵横比例 在宽度和高度上接近所设定的width和height
+        $config['new_image'] = $path;
+        $config['width'] = 360;
+        $this->load->library('image_lib', $config);
+        $this->image_lib->resize();
+        $this->image_lib->clear();
+    }
+
+    function rename_img(){
+      $i = $this->input->post('i');
+      $result = $this->photo->select('attachments','image_path', array('type' => 'publish'), 1, $i);
+      foreach( $result  as $key => $val){ 
+        $this->dealthumb('/home/www/xihe'.$val->image_path);
+      }
+      echo json_encode(array('code' => 0,'i' => $i));exit;
     }
 
     function index_bg_add(){

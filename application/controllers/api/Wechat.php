@@ -63,6 +63,7 @@ class Wechat extends CI_Controller{
             'encrypteddata' => $encrypteddata,
             'openid'        => $openid,
             'nickname'      => base64_encode($decode_user->nickName),
+            'origin_name'   => $decode_user->nickName,
             'avatarurl'     => $decode_user->avatarUrl 
         );
         

@@ -51,7 +51,7 @@
 		$btn.addClass("disabled");
 		$.post("/admin/login", login_param, function(data) {
 			if (data.success == 'yes') {
-            	window.location.href="/admin/lessions";
+            	window.location.href="/admin/main";
 
 			} else {
 				$btn.removeClass("disabled");

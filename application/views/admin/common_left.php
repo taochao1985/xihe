@@ -42,6 +42,10 @@
               <ul class="nav side-menu"> 
                 <li><a><i class="fa fa-user"></i> 基础信息管理 <span class="fa fa-chevron-down"></span></a>
                   <ul class="nav child_menu" style="display: none">
+                    <li><a href="/admin/main">数据统计</a>
+                    </li>
+                    <li><a href="/admin/users/messages">用户消息管理</a>
+                    </li>
                     <li><a href="/admin/baseconfig/lession_type">课程类别管理</a>
                     </li>
                     <li><a href="/admin/lessions">课程管理</a>
@@ -50,7 +54,22 @@
                     </li>
                     <li><a href="/admin/users/index">用户管理</a>
                     </li>
+                    <li><a href="/admin/publish/index">作品管理</a>
+                    </li>
+                    <li><a href="/admin/users/agent_records/0">推广记录查看</a>
+                    </li>
                     <li><a href="/admin/news/index">系统公告管理</a>
+                    </li>
+                    <li><a href="/admin/baseconfig/restrict_words">敏感词管理</a>
+                    </li>
+                  </ul>
+                </li>
+
+                <li style="display: none;"><a><i class="fa fa-user"></i> 商城相关管理 <span class="fa fa-chevron-down"></span></a>
+                  <ul class="nav child_menu" style="display: none">
+                    <li><a href="/admin/products/list">商品管理</a>
+                    </li>
+                    <li><a href="/admin/orders/list">订单管理</a>
                     </li>
                   </ul>
                 </li>

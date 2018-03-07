@@ -10,6 +10,7 @@
         video_input : $(".hidden_video_input"),
         audio_input : $(".hidden_audio_input"),
         image_input : $(".hidden_image_input"),
+        video_image : $(".hidden_video_image_input"),
         start_time  : $(".start_time"),
         id          : $(".lession_id"),
         lt_id       : $(".lt_id"),
@@ -19,20 +20,11 @@
     };
 
     photo._init_editor = function(){
-        var E = window.wangEditor;
-        dom.editor = new E('#description');
-        dom.editor.customConfig.uploadImgServer = '/admin/fileupload/mluti_upload';
-        dom.editor.customConfig.uploadFileName = 'userfile[]';
-        dom.editor.customConfig.uploadImgMaxLength = 50;
-        dom.editor.customConfig.uploadImgHooks = {
-            customInsert: function (insertImg, result, editor) { 
-                var result = result.data;
-                for(var i = 0 ; i < result.final_data.length; i++){
-                    insertImg(photo.base_url+result.final_path+result.final_data[i].file_name); 
-                }
-            }
-        };
-        dom.editor.create()
+        dom.editor = UE.getEditor('description',{
+            fileUrlPrefix  : "https://www.photoclub.vip",
+            videoUrlPrefix : "https://www.photoclub.vip",
+            imageUrlPrefix : "https://www.photoclub.vip"
+        });
     };
 
     photo._file_uploaded = function(data, target, file_type, item_input){
@@ -82,16 +74,17 @@
     };
 
     photo._get_form_data = function(){
-        var id         = photo._int(dom.id.val());
-        var video_path = photo._trim(dom.video_input.val());
-        var video_name = photo._trim(dom.video_input.parents('.upload_item').find('.name_area').html());
-        var audio_path = photo._trim(dom.audio_input.val());
-        var audio_name = photo._trim(dom.audio_input.parents('.upload_item').find('.name_area').html());
-        var image_path = photo._trim(dom.image_input.val());
-        var start_time = dom.start_time.val();
-        var description = dom.editor.txt.html();
-        var title      = photo._trim(dom.title.val());
-        var lt_id      = photo._int(dom.lt_id.val());
+        var id          = photo._int(dom.id.val());
+        var video_path  = photo._trim(dom.video_input.val());
+        var video_name  = photo._trim(dom.video_input.parents('.upload_item').find('.name_area').html());
+        var video_image = photo._trim(dom.video_image.val());
+        var audio_path  = photo._trim(dom.audio_input.val());
+        var audio_name  = photo._trim(dom.audio_input.parents('.upload_item').find('.name_area').html());
+        var image_path  = photo._trim(dom.image_input.val());
+        var start_time  = dom.start_time.val();
+        var description = dom.editor.getContent();
+        var title       = photo._trim(dom.title.val());
+        var lt_id       = photo._int(dom.lt_id.val());
 
         if( title == "" ){
             dom.title.focus().parents(".item").addClass('has-error');
@@ -115,6 +108,7 @@
             audio_name  : audio_name,
             description : description,
             start_time  : start_time,
+            video_image : video_image,
             lt_id       : lt_id,
             title       : title
         }; 
@@ -144,7 +138,7 @@
     });
 
     photo._init_editor();
-
+    
     dom.preview_btn.on('click',photo._get_form_data_preview);
     dom.save_btn.on('click',photo._get_form_data);
 })(window)

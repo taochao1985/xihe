@@ -1,7 +1,7 @@
 <?php
 class Photo extends CI_Model {
 
-    function select_count_where($table,$cond='',$like='',$or_like=''){
+    function select_count_where($table,$cond='',$like='',$or_like='', $where_in = ''){
         if ($cond){
            $this->db->where($cond);
         }
@@ -12,9 +12,14 @@ class Photo extends CI_Model {
             $this->db->or_like($or_like);
         }
 
+        if( !empty($where_in) ){
+            foreach($where_in as $key=>$val){
+                $this->db->where_in($key,$val);
+            }
+        }
+
         $query = $this->db->from($table);
         $result= $query->count_all_results();
-
         return $result;
     }
 
@@ -76,27 +81,36 @@ class Photo extends CI_Model {
         $result = $query->result();
         return $result;
     }
+    function select_collect_count(){
+        return count($this->personal_select("SELECT DISTINCT image_id FROM  `image_collects` WHERE 1 "));
+    }
 
-    function select_collections(){
+    function select_collections($start = 0){
         $this->db->select('count(*) as count ,image_collects.image_id,attachments.image_path, publishes.uid');
         $this->db->from('image_collects');
         $this->db->join('attachments', 'attachments.id = image_collects.image_id ', 'left');
         $this->db->join('publishes', 'publishes.id = attachments.item_id', 'left');
         $this->db->group_by('image_collects.image_id');
         $this->db->order_by('count','desc');
-       // $this->db->limit(4,0);
+        $this->db->order_by('image_collects.image_id','desc');
+        $this->db->limit(8,$start);
         $query = $this->db->get();
         $result = $query->result(); 
         return $result;
     }
 
-    function select_follows(){
+    function select_follow_count(){
+        return count($this->personal_select("SELECT DISTINCT target_uid FROM  `user_follows` WHERE 1 "));
+    }
+
+    function select_follows($start = 0){
         $this->db->select('count(*) as count ,users.avatarurl,user_follows.target_uid');
         $this->db->from('user_follows');
         $this->db->join('users', 'users.uid = user_follows.target_uid ', 'left');
         $this->db->group_by('user_follows.target_uid');
         $this->db->order_by('count','desc');
-        //$this->db->limit(4,0);
+        $this->db->order_by('user_follows.target_uid','desc');
+        $this->db->limit(8,$start);
         $query = $this->db->get();
         $result = $query->result(); 
         return $result;
@@ -126,6 +140,29 @@ class Photo extends CI_Model {
         return $result;
     }
 
+    function select_post_publishes_count($select_cond){
+        
+        $this->db->select('publishes.*, users.pay_status, users.uid');
+        $this->db->from('publishes');
+        $this->db->join('users', 'users.uid = publishes.uid ', 'left');
+        $this->db->where($select_cond);
+        $query = $this->db->get();
+        $result = $query->result();
+        return count($result);
+    }
+
+    function select_post_publishes($select_cond, $start, $perpage){
+        $this->db->select('publishes.*, users.pay_status, users.uid');
+        $this->db->from('publishes');
+        $this->db->join('users', 'users.uid = publishes.uid ', 'left');
+        $this->db->where($select_cond);
+        $this->db->limit($perpage, $start);
+        $this->db->order_by('publishes.created','desc');
+        $query = $this->db->get();
+        $result = $query->result();
+        return $result;
+    }
+
     function select_post_comments($select_cond){
         $this->db->select('user_comments.*, users.nickname, users.uid');
         $this->db->from('user_comments');
@@ -137,8 +174,8 @@ class Photo extends CI_Model {
         return $result;
     }
 
-    function select_lessions_join_attachments($select_cond=array(), $order = 'desc'){
-        $this->db->select('lessions.*, attachments.image_path, attachments.type');
+    function select_lessions_join_attachments($select_cond=array(), $order = 'desc', $fields="lessions.*"){
+        $this->db->select($fields.', attachments.image_path, attachments.type');
         $this->db->from('lessions');
         $this->db->join('attachments', 'attachments.item_id = lessions.id and attachments.type="lession" ', 'left');
         $this->db->where($select_cond);
@@ -148,14 +185,26 @@ class Photo extends CI_Model {
         return $result;
     }
 
-    function select_publishes_join_attachments($uid, $num = "", $offset = ""){
+    function select_publishes_join_attachments($uid, $num = "", $offset = "", $limit_time = 0){
         $where = "";
         if( $uid ) {
             $where = " where uid = ". $uid;
-        }    
+        }else {
+            $where = " where uid != 0 ";
+            
+            if ( $limit_time ){
+                $where.=" and created > $limit_time";
+            }
+        }
+
+        $limit_cond = "";    
+        if ( $offset ){
+            $limit_cond = "limit $num, $offset";
+        }
+
         $sql  = "select s.*, attachments.image_path, attachments.id as aid, attachments.type, users.uid, users.nickname, users.avatarurl";
-        $sql .= " from (select * from  publishes $where order by created desc limit $num, $offset) s left join attachments on attachments.item_id = s.id and attachments.type='publish' ";
-        $sql .= " left join users on users.uid = s.uid ";  
+        $sql .= " from (select *, created as pub_created from  publishes $where order by created desc $limit_cond) s left join attachments on attachments.item_id = s.id and attachments.type='publish' and attachments.image_path !='' ";
+        $sql .= " left join users on users.uid = s.uid order by pub_created desc, attachments.id desc";  
         return $this->personal_select($sql);
     }
 
@@ -164,7 +213,7 @@ class Photo extends CI_Model {
         return $this->personal_select($sql);
     }
 
-   function select($table,$fields="*",$cond="",$num="",$offset="",$order='',$like='',$or_like=''){
+   function select($table,$fields="*",$cond="",$num="",$offset="",$order='',$like='',$or_like='', $where_in=''){
 
         $this->db->select($fields);
 
@@ -180,6 +229,12 @@ class Photo extends CI_Model {
         }
         if (!empty($or_like)){
             $this->db->or_like($or_like);
+        }
+
+        if( !empty($where_in) ){
+            foreach($where_in as $key=>$val){
+                $this->db->where_in($key,$val);
+            }
         }
 
         if($order){

@@ -52,7 +52,7 @@
                         <i class="glyphicon glyphicon-plus"></i>
                         <span>选择视频</span>
                         <!-- The file input field used as target for the file upload widget -->
-                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="videos">
+                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="videos" file_cate="mp4,avi,rmvb">
                         <input type="hidden" class="hidden_video_input" value="<?php if($lession){echo $lession->video_path;}?>">
                     </div> 
                     <div class="progress upload-process pull-left hidden">
@@ -66,6 +66,29 @@
                 </div>
 
                 <div class="item form-group">
+                  <label class="control-label col-md-2 col-sm-2 col-xs-12" for="field_one">视频封面图片
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12 upload_item" style="margin-top:8px;">
+                    <div class="btn btn-success fileinput-button pull-left">
+                        <i class="glyphicon glyphicon-plus"></i>
+                        <span>选择图片</span>
+                        <!-- The file input field used as target for the file upload widget -->
+                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="images" file_cate="jpg,png,jpeg">
+                        <input type="hidden" class="hidden_video_image_input" value="<?php if($lession){echo $lession->video_image;}?>">
+                    </div> 
+                    <div class="progress upload-process pull-left hidden">
+                        <div class="progress-bar progress-bar-success"></div>
+                    </div>
+                    <div class="name_area upload-process name-area pull-left" <?php if($lession){ ?> style="margin-top:0" <?php }?>>
+                        <?php if($lession){ ?>
+                            <img src="<?php echo $lession->video_image;?>"  class='venobox' href="<?php echo $lession->video_image;?>">
+                        <?php }?>    
+                    </div>
+                    <span class="clearfix"></span>
+                  </div>
+                </div>
+
+                <div class="item form-group">
                   <label class="control-label col-md-2 col-sm-2 col-xs-12" for="field_one">音频
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12 upload_item" style="margin-top:8px;">
@@ -73,7 +96,7 @@
                         <i class="glyphicon glyphicon-plus"></i>
                         <span>选择音频</span>
                         <!-- The file input field used as target for the file upload widget -->
-                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="audios">
+                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="audios" file_cate="mp3,wav,m4a">
                         <input type="hidden" class="hidden_audio_input" value="<?php if($lession){echo $lession->audio_path;}?>" >
                     </div> 
                     <div class="progress upload-process pull-left hidden">
@@ -94,7 +117,7 @@
                         <i class="glyphicon glyphicon-plus"></i>
                         <span>选择图片</span>
                         <!-- The file input field used as target for the file upload widget -->
-                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="images">
+                        <input class="fileupload" type="file" name="userfile" multiple="" file_type="images" file_cate="jpg,png,jpeg">
                         <input type="hidden" class="hidden_image_input" value="<?php if($lession){echo $lession->image_path;}?>">
                     </div> 
                     <div class="progress upload-process pull-left hidden">
@@ -112,9 +135,9 @@
                     <label class="control-label col-md-2 col-sm-2 col-xs-12" for="field_one">正文
                     </label>
                     <div class="col-md-6 col-sm-6 col-xs-12 upload_item" style="margin-top:8px; z-index: 0;">
-                        <div class="description" id="description">
+                        <script id="description" name="description" type="text/plain">
                             <?php if($lession){echo $lession->description;}?>
-                        </div>
+                        </script>
                     </div>
                 </div> 
                 <div class="ln_solid"></div>
@@ -139,7 +162,9 @@
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload.js"></script>
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-process.js"></script> 
 <script type="text/javascript" src="/node_modules/blueimp-file-upload/js/jquery.fileupload-validate.js"></script>
-<script type="text/javascript" src="/node_modules/wangeditor/release/wangEditor.min.js"></script>
+<script type="text/javascript" src="/assets/ueditor/ueditor.config.js"></script>
+    <!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/assets/ueditor/ueditor.all.js"></script>
 <script type="text/javascript" src="/node_modules/venobox/venobox/venobox.min.js"></script>
 <script src="/assets/js/admin/lession_create.js"></script> 
 <?php $this->load->view('admin/common_footer');?>
